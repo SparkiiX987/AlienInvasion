@@ -5,11 +5,12 @@ TagManager:
   serializedVersion: 2
   tags:
   - Alien
+  - AlienStructure
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - StructurePoint
   - Water
   - UI
   - 

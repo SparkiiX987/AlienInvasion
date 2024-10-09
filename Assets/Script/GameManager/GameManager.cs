@@ -1,12 +1,18 @@
-using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private string alienTag;
+    [SerializeField] private string alienStructTag;
     [SerializeField] private Controls playerControls;
+    [SerializeField] private GameObject StructurePrefab;
+    [SerializeField] private float placingRange;
+
+    private bool isDraging;
+    private Transform dragingObject;
 
     private InputAction mouse;
 
@@ -21,7 +27,10 @@ public class GameManager : MonoBehaviour
     {
         mouse = playerControls.Inputs.Mouse;
         mouse.Enable();
-        mouse.performed += OnClic;
+        mouse.started += OnClick;
+        mouse.performed += OnMaintain;
+        mouse.canceled += OnReleased;
+
 
     }
 
@@ -32,24 +41,99 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-
+        if (isDraging)
+        {
+            Drag();
+        }
     }
 
-    private void OnClic(InputAction.CallbackContext ctx)
+    private void OnClick(InputAction.CallbackContext ctx)
     {
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        print(mousePos);
         RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
 
         if (hit.collider != null && hit.collider.tag == alienTag)
         {
-            oldPosition = hit.collider.transform.position;
+            oldPosition = hit.transform.position;
+            dragingObject = hit.transform;
+            isDraging = true;
+
+        }
+    }
+
+    private void OnMaintain(InputAction.CallbackContext ctx)
+    {
+        if (isDraging)
+        {
+            Drag();
+        }
+    }
+
+    private void OnReleased(InputAction.CallbackContext ctx)
+    {
+        if (isDraging)
+        {
+            isDraging = false;
+            PlaceStructure();
+            dragingObject.position = oldPosition;
         }
     }
 
     private void Drag()
     {
+        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        dragingObject.position = new Vector2(mousePos.x, mousePos.y);
+    }
 
+    private void PlaceStructure()
+    {
+        RaycastHit2D[] hits = Physics2D.CircleCastAll(dragingObject.position, placingRange, Vector2.zero, placingRange);
+        Dictionary<Rigidbody2D, Vector2> positions = new();
+        List<Rigidbody2D> rigidbodys = new();
+        if (hits.Length > 0)
+        {
+            for (int i = 0; i < hits.Length; i++)
+            {
+                if(hits[i].transform.tag == alienStructTag)
+                {
+                    positions.Add(hits[i].transform.GetComponent<Rigidbody2D>(), hits[i].transform.position);
+                    rigidbodys.Add(hits[i].transform.GetComponent<Rigidbody2D>());
+                }
+            }
+            if (rigidbodys.Count == 0)
+                return;
+
+            GameObject newStructurePoint = Instantiate(StructurePrefab);
+            newStructurePoint.transform.position = dragingObject.position;
+            for(int i = 0; i < rigidbodys.Count; i++)
+            {
+                SetupStructurePoint(newStructurePoint);
+            }
+            SpringJoint2D[] springJoins = newStructurePoint.GetComponents<SpringJoint2D>();
+            LineRenderer[] linesRenderers = newStructurePoint.GetComponents<LineRenderer>();
+            for (int i = 0;i < springJoins.Length; i++)
+            {
+                InitSpringJoin(springJoins[i], rigidbodys[i]);
+                linesRenderers[i].SetPosition(0, positions[rigidbodys[i]]);
+            }
+
+        }
+    }
+
+    private void SetupStructurePoint(GameObject newStructurePoint)
+    {
+        newStructurePoint.AddComponent<SpringJoint2D>();
+        newStructurePoint.AddComponent<LineRenderer>();
+        newStructurePoint.GetComponent<LineRenderer>().SetPosition(0, newStructurePoint.transform.position);
+        newStructurePoint.GetComponent<LineRenderer>().loop = true;
+    }
+
+    private void InitSpringJoin(SpringJoint2D springJoin, Rigidbody2D rigidbody)
+    {
+        springJoin.connectedBody = rigidbody;
+        springJoin.enableCollision = true;
+        springJoin.frequency = 5;
+        springJoin.anchor = rigidbody.position;
     }
 
 }
