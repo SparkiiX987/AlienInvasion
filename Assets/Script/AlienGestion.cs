@@ -7,6 +7,8 @@ public class AlienGestion : MonoBehaviour
 
     private Transform _tranform;
     private SpringJoint2D[] springjoins;
+    List<LineRenderer> lineRenderers = new();
+
 
     void Start()
     {
@@ -15,28 +17,19 @@ public class AlienGestion : MonoBehaviour
 
         for (int i = 0; i < springjoins.Length; i++)
         {
-            GameObject newJoin = Instantiate(joinPrefab);
-            Transform otherTransform = springjoins[i].connectedBody.transform;
-            Vector2 avancement = (otherTransform.position - _tranform.position);
-            Vector2 pos = (Vector2)_tranform.position + avancement / 2;
-            newJoin.transform.position = pos;
-
-            float posNorm = Mathf.Sqrt(Mathf.Pow(avancement.x, 2) + Mathf.Pow(avancement.y, 2));
-            float rotation = Mathf.Atan2(avancement.y, avancement.x) * Mathf.Rad2Deg;
-
-            newJoin.transform.rotation = Quaternion.Euler(0, 0, rotation);
-            float scale = Mathf.Sqrt(Mathf.Pow(avancement.x, 2) + Mathf.Pow(avancement.y, 2));
-            print(scale);
-            newJoin.transform.localScale = new Vector3(newJoin.transform.localScale.x, scale, 1);
-
-            newJoin.transform.SetParent(_tranform, true);
-            newJoin.GetComponent<PositionUpdater>().target = otherTransform;
-
+            GameObject newJoin = Instantiate(joinPrefab, _tranform);
+            newJoin.transform.position = Vector2.zero;
+            lineRenderers.Add(newJoin.GetComponent<LineRenderer>());
+            newJoin.GetComponent<LineRenderer>().widthMultiplier = 0.4f;
         }
     }
 
     void Update()
     {
-
+        for (int i = 0; i < lineRenderers.Count; i++)
+        {
+            lineRenderers[i].SetPosition(0, _tranform.position);
+            lineRenderers[i].SetPosition(1, springjoins[i].connectedBody.position);
+        }
     }
 }

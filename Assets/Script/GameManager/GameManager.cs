@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,13 +9,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Controls playerControls;
     [SerializeField] private GameObject StructurePrefab;
     [SerializeField] private float placingRange;
+    [SerializeField] private float minRange;
+    [SerializeField] private Transform structureParent;
 
     private bool isDraging;
     private Transform dragingObject;
 
     private InputAction mouse;
-
-    private Vector2 oldPosition;
 
     private void Awake()
     {
@@ -50,14 +49,18 @@ public class GameManager : MonoBehaviour
     private void OnClick(InputAction.CallbackContext ctx)
     {
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
+        RaycastHit2D[] hit = Physics2D.RaycastAll(mousePos, Vector2.zero);
+        if (hit.Length == 0)
+            return;
 
-        if (hit.collider != null && hit.collider.tag == alienTag)
+        for(int i = 0; i < hit.Length; i++)
         {
-            oldPosition = hit.transform.position;
-            dragingObject = hit.transform;
-            isDraging = true;
+            if (hit[i].collider != null && hit[i].collider.tag == alienTag)
+            {
+                dragingObject = hit[i].transform;
+                isDraging = true;
 
+            }
         }
     }
 
@@ -75,7 +78,6 @@ public class GameManager : MonoBehaviour
         {
             isDraging = false;
             PlaceStructure();
-            dragingObject.position = oldPosition;
         }
     }
 
@@ -93,7 +95,9 @@ public class GameManager : MonoBehaviour
         {
             for (int i = 0; i < hits.Length; i++)
             {
-                if(hits[i].transform.tag == alienStructTag)
+                //calcule la distance entre l'objet placer et la boule structure
+                float distance = Mathf.Sqrt(Mathf.Pow((dragingObject.position.x - hits[i].transform.position.x), 2) + Mathf.Pow((dragingObject.position.y - hits[i].transform.position.x), 2));
+                if(hits[i].transform.tag == alienStructTag && distance >minRange)
                 {
                     rigidbodys.Add(hits[i].transform.GetComponent<Rigidbody2D>());
                 }
@@ -103,6 +107,7 @@ public class GameManager : MonoBehaviour
 
             GameObject newStructurePoint = Instantiate(StructurePrefab);
             newStructurePoint.transform.position = dragingObject.position;
+            newStructurePoint.transform.SetParent(structureParent, true);
             for(int i = 0; i < rigidbodys.Count; i++)
             {
                 SetupStructurePoint(newStructurePoint);
@@ -113,6 +118,8 @@ public class GameManager : MonoBehaviour
                 InitSpringJoin(springJoins[i], rigidbodys[i]);
             }
 
+            Destroy(dragingObject.gameObject);
+            dragingObject = null;
         }
     }
 
@@ -127,6 +134,7 @@ public class GameManager : MonoBehaviour
         springJoin.enableCollision = true;
         springJoin.frequency = 25;
         springJoin.connectedAnchor = Vector2.zero;
+        springJoin.enableCollision = true;
     }
 
 }
