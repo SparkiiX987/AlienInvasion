@@ -88,7 +88,6 @@ public class GameManager : MonoBehaviour
     private void PlaceStructure()
     {
         RaycastHit2D[] hits = Physics2D.CircleCastAll(dragingObject.position, placingRange, Vector2.zero, placingRange);
-        Dictionary<Rigidbody2D, Vector2> positions = new();
         List<Rigidbody2D> rigidbodys = new();
         if (hits.Length > 0)
         {
@@ -96,7 +95,6 @@ public class GameManager : MonoBehaviour
             {
                 if(hits[i].transform.tag == alienStructTag)
                 {
-                    positions.Add(hits[i].transform.GetComponent<Rigidbody2D>(), hits[i].transform.position);
                     rigidbodys.Add(hits[i].transform.GetComponent<Rigidbody2D>());
                 }
             }
@@ -110,11 +108,9 @@ public class GameManager : MonoBehaviour
                 SetupStructurePoint(newStructurePoint);
             }
             SpringJoint2D[] springJoins = newStructurePoint.GetComponents<SpringJoint2D>();
-            LineRenderer[] linesRenderers = newStructurePoint.GetComponents<LineRenderer>();
             for (int i = 0;i < springJoins.Length; i++)
             {
                 InitSpringJoin(springJoins[i], rigidbodys[i]);
-                linesRenderers[i].SetPosition(0, positions[rigidbodys[i]]);
             }
 
         }
@@ -123,17 +119,14 @@ public class GameManager : MonoBehaviour
     private void SetupStructurePoint(GameObject newStructurePoint)
     {
         newStructurePoint.AddComponent<SpringJoint2D>();
-        newStructurePoint.AddComponent<LineRenderer>();
-        newStructurePoint.GetComponent<LineRenderer>().SetPosition(0, newStructurePoint.transform.position);
-        newStructurePoint.GetComponent<LineRenderer>().loop = true;
     }
 
     private void InitSpringJoin(SpringJoint2D springJoin, Rigidbody2D rigidbody)
     {
         springJoin.connectedBody = rigidbody;
         springJoin.enableCollision = true;
-        springJoin.frequency = 5;
-        springJoin.anchor = rigidbody.position;
+        springJoin.frequency = 25;
+        springJoin.connectedAnchor = Vector2.zero;
     }
 
 }
