@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Alien
   - AlienStructure
+  - Ground
   layers:
   - Default
   - TransparentFX
