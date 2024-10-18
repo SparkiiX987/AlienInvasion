@@ -51,11 +51,11 @@ MonoBehaviour:
   placingRange: 2.5
   minRange: 0.5
   structureParent: {fileID: 0}
-  joinPrefab: {fileID: 0}
+  joinPrefab: {fileID: 3774798905601200253, guid: 7b9a602faee7cec4a91394ced6b537b3, type: 3}
   preLinkGradient:
     serializedVersion: 2
-    key0: {r: 1, g: 1, b: 1, a: 1}
-    key1: {r: 1, g: 1, b: 1, a: 1}
+    key0: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 0.5882353}
+    key1: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 0.5882353}
     key2: {r: 0, g: 0, b: 0, a: 0}
     key3: {r: 0, g: 0, b: 0, a: 0}
     key4: {r: 0, g: 0, b: 0, a: 0}
@@ -83,6 +83,8 @@ MonoBehaviour:
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
   preLinks: []
+  timerText: {fileID: 0}
+  timer: 0
   started: 0
 --- !u!114 &4295391264237290828
 MonoBehaviour:

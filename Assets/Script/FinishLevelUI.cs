@@ -10,10 +10,14 @@ public class FinishLevelUI : MonoBehaviour
     [SerializeField] private GameObject buttonsParent;
     [SerializeField] private List<GameObject> stars = new List<GameObject>();
     [SerializeField] private Sprite ownedStarSprite;
+    public string nextLevel;
 
     private void OnEnable()
     {
-        StartCoroutine(EndAnimation());
+        if(tag == "lose")
+            StartCoroutine(LoseAnime());
+        else
+            StartCoroutine(EndAnimation());
     }
 
     private IEnumerator EndAnimation()
@@ -21,7 +25,7 @@ public class FinishLevelUI : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
         for (int i = 0; i < stars.Count; i++)
         {
-            if (!(PlayerPrefs.GetInt(levelName + "Star" + i) != 1))
+            if ((PlayerPrefs.GetInt(levelName + "Star" + (i + 1)) != 1))
                 break;
             stars[i].GetComponent<Image>().sprite = ownedStarSprite;
             yield return new WaitForSeconds(0.5f);
@@ -30,9 +34,15 @@ public class FinishLevelUI : MonoBehaviour
         buttonsParent.SetActive(true);
     }
 
+    private IEnumerator LoseAnime()
+    {
+        yield return new WaitForSeconds(0.5f);
+        buttonsParent.SetActive(true);
+    }
+
     public void NextLevel()
     {
-        //SceneManager.LoadScene();
+        SceneManager.LoadScene(nextLevel);
     }
 
     public void Restart()
@@ -40,12 +50,9 @@ public class FinishLevelUI : MonoBehaviour
         SceneManager.LoadScene(levelName);
     }
 
-    public void SelectLevel()
+    public void MainMenu()
     {
-        SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Additive);
-        GameObject UI = GameObject.Find("Menu");
-        UI.GetComponent<RectTransform>().anchoredPosition = new Vector2(1920, 0);
-        //SceneManager.UnloadSceneAsync(levelName);
+        SceneManager.LoadScene("MainMenu");
     }
 
 }

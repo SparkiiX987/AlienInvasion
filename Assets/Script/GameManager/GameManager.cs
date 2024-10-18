@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Transactions;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -15,8 +15,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Transform structureParent;
     [SerializeField] private GameObject joinPrefab;
     [SerializeField] private Gradient preLinkGradient;
+    [SerializeField] private GameObject looseLevel;
+    [SerializeField] private Transform goosParent;
 
     [SerializeField] private List<GameObject> preLinks = new();
+
+    [SerializeField] private TextMeshProUGUI timerText;
+
+    public float timer;
 
     private bool isDraging;
     private Transform dragingObject;
@@ -51,6 +57,11 @@ public class GameManager : MonoBehaviour
         if (isDraging)
         {
             Drag();
+        }
+        if (started)
+        {
+            timer += Time.deltaTime;
+            timerText.text = "Time : " + Mathf.Round(timer);
         }
     }
 
@@ -91,7 +102,25 @@ public class GameManager : MonoBehaviour
             isDraging = false;
             dragingObject.GetComponent<PositionUpdater>().draging = false;
             PlaceStructure();
+            StartCoroutine(checkLoosCondition());
         }
+    }
+
+    private IEnumerator checkLoosCondition()
+    {
+        print(goosParent.childCount);
+        yield return new WaitForSeconds(0.5f);
+        if (goosParent.childCount == 0)
+        {
+            yield return new WaitForSeconds(0.5f);
+
+            if (started)
+            {
+                started = false;
+                looseLevel.SetActive(true);
+            }
+        }
+         
     }
 
     private void Drag()
